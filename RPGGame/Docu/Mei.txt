@@ -1,0 +1,159 @@
+Baze podataka - spasavamo podatke!sastoji se od tabela koje preslikavaju clasu i medjusobno su spojene
+SQL - Strutured query language, jezik sa kojim komuniiramo sa bazom (Jezik sa kojim pravimo upite za bazu podataka)
+Relaciona baza podataka = vrsta baze, gdje su tabele medjusobno povezane, gdje su tabele u relaciji.
+Normalizaija - proces kojim smanjujemo ponavljanje podataka u bazi(ponavljanje = redudantnost)
+Schema - Prefix na pocetku imena tabele, prije tacke (primjer: dbo.User, dbo je schema a User je ime tabele). DB sama stavi "dbo" kao schemu ako sam ne definises. Sluzi da podijelis tabele u grupu na neki logicni nacin.
+Upit/Query - 
+
+Primary key (unique)
+ForeignKey
+Diagram (one to many, many to many, one to one)
+Data types
+
+
+SELECT
+FROM
+
+Alias
+
+DISTINCT
+TOP
+WHERE (eq =, not eq != || <>), OR AND, IN, NOT IN, LIKE NOT LIKE  'A%'
+	EQ
+	NOT EQ
+	OR
+	AND
+	IN
+	NOT IN
+	LIKE
+	NOT LIKE
+	GT
+	BTW 100 and 200
+	
+Comment (--)
+
+
+Backup
+
+Tipovi:
+nvarchar - String
+int
+date
+money - decimal
+
+3 Vrste veza izmedju tabela
+	1. One to many - Jedan korisnik ima vise narudzba, jedna narudzba pripada samo jednom korisniku
+	2. One to one - Jedan korisnik ima poslovne podatke, poslovni podaci odgovaraju jednom korisniku
+	3. Many to many - Jedna narudzba ima vise proizvoda, jedan proizvod moze pripadati vise narudzba (imamo uvijek medju tabelu izmedju, koja sadrzi id od obe tabele kao FK)
+
+4 Vrste JOIN:
+	1. Inner
+	2. Right
+	3. Left
+	4. Full
+	
+	
+Models- su preslikane tabele iz baze, i kada ih saljmo prema frontend-u konvertujemo ih u  DTO
+DTO -date trasfer object tj preko njega saljemo podatke koji su relevantni za frontend.kada trebamo da spasimo u bazu uvijek konvertujemo dto u model.
+automapper je biblioteka koji koristimo da konvertujemo jednu klasu u drugu tj dto u model ili model u dto
+
+
+
+1. Napravi DTO
+2. Registruj mapping u AutoMapper Profile
+3. Napravi interface za servis
+4. Napravi servis i implementiraj interface
+5. Registruj servis u Program.cs da bi ga mogli ubrizgati sa DI
+6.Repository- Interface i sam Repository npraviti i registruj u program.cs
+6. Napravi privatni atribut u kontroleru, koji je tipa interface servisa.
+7. Napravi konstruktor u kontroleru koji prima parametar tipa interface
+8. Spasi parametar u atribut i koristi ga u action metodama
+
+Update:kada pravimo novu tabelu
+1.Model
+2.DBSet
+3.Migration
+-Ako imamo tableu ova tri koraka preskocimo
+1.Napravimo Repository Interface.
+2.Napravimo Repository
+
+
+
+
+
+- Install EF Core
+- Add DB Context
+- Seed
+- First migration
+
+
+1. Da li imaš Model za podatke sa kojima želiš da radiš?
+	Ukoliko je odgovor NE, prati slijedeće korake:
+		1.1 Napravi novi Model i definiši u njemu atribute. Kada definišeš atribute pitaj se koje podatke za taj model treba da spasiš u DB.
+		1.2 Napravi novu migraciju, da bi Entity Framwork mappao Model u Tabelu u DB. Izvrši slijedeću komandu u NuGet Console: 
+			Add-Migration NazivMigracije
+		1.3 Uradi update DB. 
+			Update-Database
+
+2. Identifikuj koji će ti DTOs biti potrebni. 
+   Pitaj se koje podatke ćeš primiti sa Frontend-a kao parametre i koje podatke ćeš vraćati Frontend-u kao Response.
+
+3. Napravi identifikovane DTOs
+
+4. Po potrebi dodaj konfiguracije u AutoMapper koje Modele treba moći Mappati (Konvertovati) u koje DTOs i obrnuto. 
+   Neke DTOs nećeš morati mappati u Modele, nego su samo tu da preneseš podatke sa Frontend-a na Backend i obrnuto.
+   
+5. Napravi Controller i sve action methode koje Controller treba imati. 
+   Nemoj zaboraviti staviti HTTP metodu i ime rute kao atribut iznad action methode.
+   Ukoliko primjetiš da ti fali DTO da bi primila neke podatke sa Frontend-a ili da vratiš podatke ka njemu, onda ponovi korake 2, 3, 4
+   Sad za sada će ti action methode biti prazne, pošto prvo moraš napraviti Servis koji ćeš onda pozvati u Controller-u.
+   
+   public ActionResult<UserDto> Register(RegistrationDto registrationDto) {}
+   
+   ActionResult-u prolsijedimo klasu/DTO koji Backend vraća Frontend-u
+   Kao parametre pišemo one DTOs koje Frontend šalje Backendu
+   
+6. Napravi Interface za Servis i definiši koje funkcije Servis treba da ima.
+
+7. Napravi Servis i implementiraj interface.
+
+8. Ubrizgaj IRepositoryBase i IMapper u Servis pomoću Dependency Injection.
+   Kako ubrizgati klasu pomoću Dependency Injection možeš viditi dole pod tačkom A.
+   
+9. Popuni tijela funkcija Servisa sa svojom logikom/kodom i koristi Repository da bi spasila promjene u DB.
+   Obično ćeš dobiti DTO od Controllera u funkciju Servisa, tako da ćeš ga morati pomoću AutoMapper prvo mappati u Model.
+   Zatim uradi sve promijene nad modelom ukoliko je to potrebno.
+   Spasi promijene pomoću Repository, koristeći njegove funkcije (Create, Update, Delete itd.)
+   Ukoliko su ti samo potrebni podaci onda je dovoljno da izvućeš podatke iz Baze i vratiš ih.
+  
+10. Registruj Servis u Program.cs
+	builder.Services.AddTransient<IUserService, UserService>();
+   
+10. Vrati se u Controller i ubrizgaj Servis pomoću Dependency Injection.
+	Ispuni tijela action methoda tako što ćeš pozvati funkcije što si napravila u Servisu
+	
+11. Testiraj action methods
+
+A. Dependency injection:
+	1. Napravi privatni readonly atribut na vrhu klase koji je tipa Interface-a koja klasa implementira, npr. IUserService.
+	private readonly IUserService _userService;
+	
+	2. Napravi Konstruktor i kao parametar primi isti Interface
+	public UserController(IUserService userService)
+	
+	3. Dodijeli parametar koji si primila privatnom atributu, unutar konstruktora
+	_userService = userService;
+	
+Sve zajedno:
+		private readonly IUserService _userService;
+
+        public UserController(IUserService userService)
+        {
+            _userService = userService;
+        }
+
+
+za mene: ono sto se pise u <..> je tip u koji pretvaramo a u zagradama poslije je objekat koji pretvaramo
+
+
+	
